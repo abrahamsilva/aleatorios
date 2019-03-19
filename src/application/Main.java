@@ -1,43 +1,48 @@
 package application;
 
 import javafx.scene.control.TextField;
+
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 import javafx.application.Application;
-import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanBinding;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 
 public class Main extends Application {
 
 	private TableView<Row> table;
 	private TableColumn<Row, Integer> idColumn, xiColumn, xiiColumn, RiColumn;
-	private RadioButton msRButton, cRButton, mRButton, cmRButton, ccRButton;
-	private TextField seedTextField, aTextField, cTextField, iterationsTextField, mTextField;
+	private RadioButton msRButton, cRButton, mRButton, cmRButton, ccRButton, chiRadioButton, kRadioButton;
+	private TextField seedTextField, aTextField, cTextField, iterationsTextField, mTextField, alfaTextField;
 	private ToggleGroup radioButtonsGroup;
+	private Label testLabel;
 	private int a, c, m, seed, it;
 
 	@Override
 	public void start(Stage primaryStage) {
 
 		primaryStage.setTitle("Generación de números aleatorios");
+
+		// label
+
+		testLabel = new Label("---- Pruebas de bondad ----");
+		testLabel.setTextFill(Color.web("#808080"));
 
 		// table columns
 
@@ -77,6 +82,10 @@ public class Main extends Application {
 		iterationsTextField = new TextField();
 		iterationsTextField.setPromptText("iteraciones");
 
+		alfaTextField = new TextField();
+		alfaTextField.setPromptText("alfa");
+		alfaTextField.setMaxWidth(100);
+
 		// radio buttons
 
 		msRButton = new RadioButton();
@@ -93,6 +102,12 @@ public class Main extends Application {
 
 		ccRButton = new RadioButton();
 		ccRButton.setText("Congruencial Combinado");
+
+		chiRadioButton = new RadioButton();
+		chiRadioButton.setText("Chi cuadrada");
+
+		kRadioButton = new RadioButton();
+		kRadioButton.setText("Kolmogorov");
 
 		radioButtonsGroup = new ToggleGroup();
 		radioButtonsGroup.getToggles().addAll(msRButton, cRButton, cmRButton, mRButton, ccRButton);
@@ -120,10 +135,25 @@ public class Main extends Application {
 		radioButtonsLayout.getChildren().addAll(msRButton, cRButton, cmRButton);
 
 		HBox radioButtonsLayout2 = new HBox();
-		radioButtonsLayout2.setPadding(new Insets(15, 15, 15, 15));
+		radioButtonsLayout2.setPadding(new Insets(15, 15, 30, 15));
 		radioButtonsLayout2.setSpacing(15);
 		radioButtonsLayout2.setAlignment(Pos.CENTER);
 		radioButtonsLayout2.getChildren().addAll(mRButton, ccRButton);
+
+		HBox testLayout = new HBox();
+		testLayout.setAlignment(Pos.CENTER);
+		testLayout.getChildren().addAll(testLabel);
+
+		HBox alfaLayout = new HBox();
+		alfaLayout.setPadding(new Insets(25, 15, 10, 15));
+		alfaLayout.setAlignment(Pos.CENTER);
+		alfaLayout.getChildren().addAll(alfaTextField);
+
+		HBox testButtonsLayout = new HBox();
+		testButtonsLayout.setPadding(new Insets(10, 15, 25, 15));
+		testButtonsLayout.setSpacing(20);
+		testButtonsLayout.setAlignment(Pos.CENTER);
+		testButtonsLayout.getChildren().addAll(chiRadioButton, kRadioButton);
 
 		HBox buttonsLayout = new HBox();
 		buttonsLayout.setPadding(new Insets(3, 3, 20, 3));
@@ -132,9 +162,10 @@ public class Main extends Application {
 		buttonsLayout.getChildren().addAll(generateButton);
 
 		VBox vBox = new VBox();
-		vBox.getChildren().addAll(table, textFieldsLayout, radioButtonsLayout, radioButtonsLayout2, buttonsLayout);
+		vBox.getChildren().addAll(table, textFieldsLayout, radioButtonsLayout, radioButtonsLayout2, testLayout,
+				alfaLayout, testButtonsLayout, buttonsLayout);
 
-		Scene scene = new Scene(vBox, 500, 550);
+		Scene scene = new Scene(vBox, 500, 700);
 		primaryStage.setScene(scene);
 		primaryStage.show();
 
@@ -144,12 +175,15 @@ public class Main extends Application {
 		cTextField.disableProperty().bind(Bindings.or(msRButton.selectedProperty(), mRButton.selectedProperty()));
 		mTextField.disableProperty().bind(msRButton.selectedProperty());
 
+		kRadioButton.disableProperty().bind(Bindings.or(msRButton.selectedProperty(), ccRButton.selectedProperty()));
+		chiRadioButton.disableProperty().bind(Bindings.or(msRButton.selectedProperty(), ccRButton.selectedProperty()));
+
 	}
 
 	private void generateButtonAction() {
 
 		Generator generator;
-		LinkedList<Row> randomNumbers;
+		ArrayList<Row> randomNumbers;
 		seed = Integer.parseInt(seedTextField.getText());
 		it = Integer.parseInt(iterationsTextField.getText());
 		table.getItems().clear();
@@ -168,6 +202,7 @@ public class Main extends Application {
 				table.getItems().add(r);
 			}
 			System.out.println("total:" + randomNumbers.size());
+
 		} else if (cRButton.isSelected()) {
 
 			a = Integer.parseInt(aTextField.getText());
@@ -182,6 +217,46 @@ public class Main extends Application {
 				table.getItems().add(r);
 			}
 			System.out.println("total:" + randomNumbers.size());
+
+			if (chiRadioButton.isSelected()) {
+
+				ChiSquare chiSquare = new ChiSquare(randomNumbers);
+				double cv = chiSquare.calculateCV();
+				double valueT = chiSquare.checkTable(Double.parseDouble(alfaTextField.getText()), 0);
+				System.out.println("K: " + chiSquare.getK());
+				if (cv < valueT) {
+					Alert res = new Alert(AlertType.INFORMATION,
+							"La prueba Chi cuadrada acepta la H0 ya que: " + cv + " < " + valueT);
+					res.setTitle("Chi Cuadrada");
+					res.setHeaderText("H0 aceptada!");
+					res.showAndWait();
+				} else {
+					Alert res = new Alert(AlertType.INFORMATION,
+							"La prueba Chi cuadrada rechaza la H0 ya que: " + cv + " >= " + valueT);
+					res.setTitle("Chi Cuadrada");
+					res.setHeaderText("H0 rechazada!");
+					res.showAndWait();
+				}
+			}
+			if(kRadioButton.isSelected()) {
+				Kolmogorov kolmogorov = new Kolmogorov(randomNumbers);
+				boolean rejected = kolmogorov.valueH0(Double.parseDouble(alfaTextField.getText()));
+				
+				if (rejected==false) {
+					Alert res = new Alert(AlertType.INFORMATION,
+							"La prueba Kolmogorov acepta la H0");
+					res.setTitle("Kolmogorov");
+					res.setHeaderText("H0 aceptada!");
+					res.showAndWait();
+				} else {
+					Alert res = new Alert(AlertType.INFORMATION,
+							"La prueba Kolmogorov rechaza la H0 ");
+					res.setTitle("Kolmogorov");
+					res.setHeaderText("H0 rechazada!");
+					res.showAndWait();
+				}
+			}
+
 		} else if (mRButton.isSelected()) {
 
 			cTextField.setText("");
@@ -196,16 +271,15 @@ public class Main extends Application {
 				table.getItems().add(r);
 			}
 			System.out.println("total:" + randomNumbers.size());
-			
-		}else if (cmRButton.isSelected()) {
-			
-			
+
+		} else if (cmRButton.isSelected()) {
+
 			a = Integer.parseInt(aTextField.getText());
 			c = Integer.parseInt(cTextField.getText());
 			m = Integer.parseInt(mTextField.getText());
-			
-			if(checkHullDobell(m, c, a-1)) {
-				
+
+			if (checkHullDobell(m, c, a - 1)) {
+
 				System.out.println("si cumple");
 				generator = new Generator(seed, c, a, m, it);
 				generator.congruential();
@@ -215,19 +289,17 @@ public class Main extends Application {
 					table.getItems().add(r);
 				}
 				System.out.println("total:" + randomNumbers.size());
-			}
-			else {
+			} else {
 				System.out.println("no cumple");
-			}		
+			}
 		}
 	}
-	
+
 	public boolean checkHullDobell(int m, int c, int a) {
-		
-		if(areCoprime(m, c) && isDivisible(a, m) && hd3(a, m)) {
+
+		if (areCoprime(m, c) && isDivisible(a, m) && hd3(a, m)) {
 			return true;
-		}
-		else {
+		} else {
 			return false;
 		}
 	}
@@ -275,10 +347,9 @@ public class Main extends Application {
 	public boolean hd3(int a, int m) {
 		if (a % 4 == 0 && m % 4 == 0) {
 			return true;
-		}
-		else {
+		} else {
 			return false;
-		}	
+		}
 	}
 
 	public long Euclides(long a, long b) {

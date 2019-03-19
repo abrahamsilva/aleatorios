@@ -1,12 +1,13 @@
 package application;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 import javax.swing.text.AbstractDocument.LeafElement;
 
 public class Generator {
 	
-	private LinkedList<Row> randomNumbers;
+	private ArrayList<Row> randomNumbers;
 	private int seed, c, a, m, it;
 	private LinkedList<Integer> control;
 	
@@ -17,11 +18,11 @@ public class Generator {
 		this.a = a;
 		this.m = m;
 		this.it = it;
-		randomNumbers = new LinkedList<Row>();
+		randomNumbers = new ArrayList<Row>();
 		control = new LinkedList<Integer>();
 	}
 	
-	public LinkedList<Row> getList(){
+	public ArrayList<Row> getList(){
 		
 		return randomNumbers;
 	}
