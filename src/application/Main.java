@@ -184,11 +184,12 @@ public class Main extends Application {
 
 		Generator generator;
 		ArrayList<Row> randomNumbers;
-		seed = Integer.parseInt(seedTextField.getText());
-		it = Integer.parseInt(iterationsTextField.getText());
 		table.getItems().clear();
 
 		if (msRButton.isSelected()) {
+
+			seed = Integer.parseInt(seedTextField.getText());
+			it = Integer.parseInt(iterationsTextField.getText());
 
 			cTextField.setText("");
 			aTextField.setText("");
@@ -205,6 +206,8 @@ public class Main extends Application {
 
 		} else if (cRButton.isSelected()) {
 
+			seed = Integer.parseInt(seedTextField.getText());
+			it = Integer.parseInt(iterationsTextField.getText());
 			a = Integer.parseInt(aTextField.getText());
 			c = Integer.parseInt(cTextField.getText());
 			m = Integer.parseInt(mTextField.getText());
@@ -238,19 +241,19 @@ public class Main extends Application {
 					res.showAndWait();
 				}
 			}
-			if(kRadioButton.isSelected()) {
+			if (kRadioButton.isSelected()) {
 				Kolmogorov kolmogorov = new Kolmogorov(randomNumbers);
 				boolean rejected = kolmogorov.valueH0(Double.parseDouble(alfaTextField.getText()));
-				
-				if (rejected==false) {
+
+				if (rejected == false) {
 					Alert res = new Alert(AlertType.INFORMATION,
-							"La prueba Kolmogorov acepta la H0\n D = "+ kolmogorov.getD());
+							"La prueba Kolmogorov acepta la H0\n D = " + kolmogorov.getD());
 					res.setTitle("Kolmogorov");
 					res.setHeaderText("H0 aceptada!");
 					res.showAndWait();
 				} else {
 					Alert res = new Alert(AlertType.INFORMATION,
-							"La prueba Kolmogorov rechaza la H0\n D = "+ kolmogorov.getD());
+							"La prueba Kolmogorov rechaza la H0\n D = " + kolmogorov.getD());
 					res.setTitle("Kolmogorov");
 					res.setHeaderText("H0 rechazada!");
 					res.showAndWait();
@@ -260,6 +263,8 @@ public class Main extends Application {
 		} else if (mRButton.isSelected()) {
 
 			cTextField.setText("");
+			seed = Integer.parseInt(seedTextField.getText());
+			it = Integer.parseInt(iterationsTextField.getText());
 			a = Integer.parseInt(aTextField.getText());
 			m = Integer.parseInt(mTextField.getText());
 
@@ -273,7 +278,9 @@ public class Main extends Application {
 			System.out.println("total:" + randomNumbers.size());
 
 		} else if (cmRButton.isSelected()) {
-
+			
+			seed = Integer.parseInt(seedTextField.getText());
+			it = Integer.parseInt(iterationsTextField.getText());
 			a = Integer.parseInt(aTextField.getText());
 			c = Integer.parseInt(cTextField.getText());
 			m = Integer.parseInt(mTextField.getText());
@@ -292,6 +299,20 @@ public class Main extends Application {
 			} else {
 				System.out.println("no cumple");
 			}
+		} else if (ccRButton.isSelected()) {
+
+			System.out.println("total");
+			int[] seeds = { 4, 2 };
+			int[] as = { 40014, 40002 };
+			int[] ms = { 2147483563, 2147483399 };
+			it = 5000;
+			generator = new Generator(seeds, as, ms, it);
+			generator.combined();
+			randomNumbers = generator.getList();
+			for (Row r : randomNumbers) {
+				table.getItems().add(r);
+			}
+			System.out.println("total:" + randomNumbers.size());
 		}
 	}
 

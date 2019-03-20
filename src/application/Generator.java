@@ -17,12 +17,23 @@ public class Generator {
 	private int seed, c, a, m, it;
 	private ArrayList<Integer> control;
 
+	private int[] seeds, as, ms;
+
 	public Generator(int seed, int c, int a, int m, int it) {
 
 		this.seed = seed;
 		this.c = c;
 		this.a = a;
 		this.m = m;
+		this.it = it;
+		randomNumbers = new ArrayList<Row>();
+		control = new ArrayList<Integer>();
+	}
+
+	public Generator(int[] seeds, int[] as, int[] ms, int it) {
+		this.seeds = seeds;
+		this.as = as;
+		this.ms = ms;
 		this.it = it;
 		randomNumbers = new ArrayList<Row>();
 		control = new ArrayList<Integer>();
@@ -125,6 +136,65 @@ public class Generator {
 				randomNumbers.add(row);
 			}
 		}
+	}
+
+	public void combined() {
+
+		int[] xi = new int[seeds.length];
+		double xij = 0;
+		double sum;
+		double xb;
+		boolean flag = true;
+		Row row = null;
+		double aux = 1;
+
+		for (int i = 0; i < it; i++) {
+
+			sum = 0;
+			xb = xij;	
+
+			if (i > 0) {
+				control.add((int) xb);
+			}
+			for (int j = 0; j < seeds.length; j++) {
+
+				xi[j] = mixed(seeds[j], as[j], ms[j]);
+				seeds[j] = xi[j];
+				sum += xi[j] * aux;
+				aux = aux * -1;
+			}
+			xij = sum % (ms[0] - 1);
+
+			if (control.contains((int) xij) && flag) {
+
+				if (askToContinue()) {
+					flag = false;
+					if (xij == 0) {
+						row = new Row(i, xb, xij, ((double)ms[0]-1 / (double) ms[0]));
+					} else {
+						row = new Row(i, xb, xij, (xij / (double) ms[0]));
+					}
+					randomNumbers.add(row);
+				} else {
+					break;
+				}
+			} else {
+				
+				if (xij == 0) {
+					row = new Row(i, xb, xij, ((double)ms[0]-1 / (double) ms[0]));
+				} else {
+					row = new Row(i, xb, xij, (xij / (double) ms[0]));
+				}
+				randomNumbers.add(row);
+			}
+
+		}
+
+	}
+
+	public int mixed(int seed, int a, int m) {
+
+		return (a * seed) % m;
 	}
 
 	public void multiplier() {
