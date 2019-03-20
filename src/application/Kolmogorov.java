@@ -77,5 +77,8 @@ public class Kolmogorov {
 			
 		
 	}
+	public double getD() {
+		return d;
+	}
 
 }

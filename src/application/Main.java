@@ -244,13 +244,13 @@ public class Main extends Application {
 				
 				if (rejected==false) {
 					Alert res = new Alert(AlertType.INFORMATION,
-							"La prueba Kolmogorov acepta la H0");
+							"La prueba Kolmogorov acepta la H0\n D = "+ kolmogorov.getD());
 					res.setTitle("Kolmogorov");
 					res.setHeaderText("H0 aceptada!");
 					res.showAndWait();
 				} else {
 					Alert res = new Alert(AlertType.INFORMATION,
-							"La prueba Kolmogorov rechaza la H0 ");
+							"La prueba Kolmogorov rechaza la H0\n D = "+ kolmogorov.getD());
 					res.setTitle("Kolmogorov");
 					res.setHeaderText("H0 rechazada!");
 					res.showAndWait();

@@ -29,12 +29,12 @@ public class ChiSquare {
 
 		for (int i = 0; i < k; i++) {
 
-			sum+=absolutes[i];
+			sum+=relatives[i];
 	
 			//System.out.println("Observed "+ i + ":" + absolutes[i]);
 
 		}
-		//System.out.println("sum: " + sum);
+		System.out.println("sum: " + sum);
 	
 		double ei = sum / (double) k;
 		//System.out.println("ei "+ei);
@@ -42,7 +42,7 @@ public class ChiSquare {
 
 		for (int i = 0; i < k; i++) {
 
-			res += (Math.pow(absolutes[i] - ei, 2)) / ei;
+			res += (Math.pow(relatives[i] - ei, 2)) / ei;
 
 		}
 		//System.out.println("res "+res);
