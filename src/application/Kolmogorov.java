@@ -9,7 +9,7 @@ import org.apache.commons.math3.stat.inference.KolmogorovSmirnovTest;
 public class Kolmogorov {
 	
 	private ArrayList<Double> randoms, dp,dm;
-	private double n, maxp, maxm, d;
+	private double n, maxp, maxm, d, p;
 	
 	public Kolmogorov(ArrayList<Row> randoms) {
 		
@@ -73,12 +73,17 @@ public class Kolmogorov {
 		}
 		
 		KolmogorovSmirnovTest kolmogorov = new KolmogorovSmirnovTest();
+		p = kolmogorov.kolmogorovSmirnovTest(realDistribution, obs);
 		return kolmogorov.kolmogorovSmirnovTest(realDistribution, obs,alfa);
 			
 		
 	}
 	public double getD() {
 		return d;
+	}
+	
+	public double getP() {
+		return p;
 	}
 
 }
