@@ -137,17 +137,31 @@ public class Generator {
 			}
 		}
 	}
+	
+	public int getMaxModule() {
+		
+		int m = ms[0];
+		
+		for(int i=1;i<ms.length;i++) {
+			
+			if(m<ms[i]) {
+				m = ms[i];
+			}
+		}
+		
+		return m;
+	}
 
 	public void combined() {
-
+		
 		int[] xi = new int[seeds.length];
 		double xij = 0;
 		double sum;
 		double xb;
 		boolean flag = true;
 		Row row = null;
-		double aux = 1;
-
+		int m = getMaxModule();
+	
 		for (int i = 0; i < it; i++) {
 
 			sum = 0;
@@ -157,22 +171,32 @@ public class Generator {
 				control.add((int) xb);
 			}
 			for (int j = 0; j < seeds.length; j++) {
-
+				System.out.println("Entra seeds= " + seeds[j]);
 				xi[j] = mixed(seeds[j], as[j], ms[j]);
 				seeds[j] = xi[j];
-				sum += xi[j] * aux;
-				aux = aux * -1;
+				System.out.println("Sale seeds= " + seeds[j]);
+				if(j==0) {
+					sum += xi[j];
+				}
+				else {
+					sum-=xi[j];
+				}		
 			}
-			xij = sum % (ms[0] - 1);
+			
+			System.out.println("sum= "+sum);
+			xij = sum % m;
+			if(xij<0) {
+				xij+=m;
+			}
 
 			if (control.contains((int) xij) && flag) {
 
 				if (askToContinue()) {
 					flag = false;
 					if (xij == 0) {
-						row = new Row(i, xb, xij, ((double)ms[0]-1 / (double) ms[0]));
+						row = new Row(i, xb, xij, ((double)m-1 / (double) m));
 					} else {
-						row = new Row(i, xb, xij, (xij / (double) ms[0]));
+						row = new Row(i, xb, xij, (xij / (double) m));
 					}
 					randomNumbers.add(row);
 				} else {
@@ -181,9 +205,9 @@ public class Generator {
 			} else {
 				
 				if (xij == 0) {
-					row = new Row(i, xb, xij, ((double)ms[0]-1 / (double) ms[0]));
+					row = new Row(i, xb, xij, ((double)m-1/ (double) m));
 				} else {
-					row = new Row(i, xb, xij, (xij / (double) ms[0]));
+					row = new Row(i, xb, xij, (xij / (double)m));
 				}
 				randomNumbers.add(row);
 			}
@@ -193,7 +217,8 @@ public class Generator {
 	}
 
 	public int mixed(int seed, int a, int m) {
-
+		
+		System.out.println("seed = " + seed + " a = " +a + "m =" + m);
 		return (a * seed) % m;
 	}
 

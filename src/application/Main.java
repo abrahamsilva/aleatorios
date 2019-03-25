@@ -1,18 +1,28 @@
 package application;
 
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Optional;
+
+import javax.swing.JOptionPane;
 
 import javafx.application.Application;
 import javafx.beans.binding.Bindings;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.stage.Stage;
+import javafx.util.Pair;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TableColumn;
@@ -20,6 +30,8 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -33,6 +45,7 @@ public class Main extends Application {
 	private ToggleGroup radioButtonsGroup;
 	private Label testLabel;
 	private int a, c, m, seed, it;
+	private int[] seeds, as, ms;
 
 	@Override
 	public void start(Stage primaryStage) {
@@ -177,117 +190,181 @@ public class Main extends Application {
 
 		kRadioButton.disableProperty().bind(Bindings.or(msRButton.selectedProperty(), ccRButton.selectedProperty()));
 		chiRadioButton.disableProperty().bind(Bindings.or(msRButton.selectedProperty(), ccRButton.selectedProperty()));
+		alfaTextField.disableProperty().bind(ccRButton.selectedProperty());
+
+		ccRButton.setOnMouseClicked(t -> {
+
+			String n = askNGenerators();
+
+			try {
+
+				if (n != null) {
+					int num = Integer.parseInt(n);
+					if (num > 0) {
+						combinedData(num);
+					} else {
+						Alert error = new Alert(AlertType.ERROR, "Ingresa un número mayor a cero");
+						error.setTitle("Error");
+						error.setHeaderText("Datos incorrectos");
+						error.showAndWait();
+					}
+				}
+
+			} catch (NumberFormatException e) {
+				Alert error = new Alert(AlertType.ERROR, "Ingresa un número mayor a cero");
+				error.setTitle("Error");
+				error.setHeaderText("Datos incorrectos");
+				error.showAndWait();
+			}
+
+		});
 
 	}
 
-	private void generateButtonAction() {
+	public void combinedData(int num) {
 
 		Generator generator;
 		ArrayList<Row> randomNumbers;
 		table.getItems().clear();
 
-		if (msRButton.isSelected()) {
+		seeds = new int[num];
+		as = new int[num];
+		ms = new int[num];
 
-			seed = Integer.parseInt(seedTextField.getText());
-			it = Integer.parseInt(iterationsTextField.getText());
+		int[] aux;
+		boolean flag = true;
+		for (int i = 0; i < num; i++) {
 
-			cTextField.setText("");
-			aTextField.setText("");
-			mTextField.setText("");
+			aux = createDialog();
+			if (aux == null) {
+				flag = false;
+				break;
+			} else {
+				seeds[i] = aux[0];
+				as[i] = aux[1];
+				ms[i] = aux[2];
 
-			generator = new Generator(seed, 0, 0, 0, it);
-			generator.middleSquare();
+			}
+		}
+		if (flag) {
+
+			generator = new Generator(seeds, as, ms, it);
+			generator.combined();
 			randomNumbers = generator.getList();
-
 			for (Row r : randomNumbers) {
 				table.getItems().add(r);
 			}
 			System.out.println("total:" + randomNumbers.size());
 
-		} else if (cRButton.isSelected()) {
+		}
 
-			seed = Integer.parseInt(seedTextField.getText());
-			it = Integer.parseInt(iterationsTextField.getText());
-			a = Integer.parseInt(aTextField.getText());
-			c = Integer.parseInt(cTextField.getText());
-			m = Integer.parseInt(mTextField.getText());
+	}
 
-			generator = new Generator(seed, c, a, m, it);
-			generator.congruential();
-			randomNumbers = generator.getList();
+	public String askNGenerators() {
 
-			for (Row r : randomNumbers) {
-				table.getItems().add(r);
+		try {
+			Dialog<ButtonType> dialog = new Dialog<>();
+			dialog.setTitle("Número de generadores a combinar");
+
+			ButtonType acceptType = new ButtonType("Aceptar", ButtonData.OK_DONE);
+			dialog.getDialogPane().getButtonTypes().addAll(acceptType, ButtonType.CANCEL);
+
+			dialog.getDialogPane().lookupButton(acceptType).setDisable(true);
+
+			GridPane grid = new GridPane();
+
+			TextField n = new TextField();
+			n.setPromptText("Número de generadores");
+
+			TextField i = new TextField();
+			i.setPromptText("iteraciones");
+
+			HBox hBox = new HBox();
+			hBox.setPadding(new Insets(15, 15, 0, 15));
+			hBox.setSpacing(15);
+			hBox.setAlignment(Pos.CENTER);
+			hBox.getChildren().addAll(n, i);
+
+			n.setOnKeyReleased(t -> {
+
+				String afString = n.getText();
+				String seedString = i.getText();
+
+				boolean isDisable = (afString.isEmpty() || afString.trim().isEmpty())
+						|| (seedString.isEmpty() || seedString.trim().isEmpty());
+
+				dialog.getDialogPane().lookupButton(acceptType).setDisable(isDisable);
+			});
+			i.setOnKeyReleased(t -> {
+
+				String afString = n.getText();
+				String seedString = i.getText();
+
+				boolean isDisable = (afString.isEmpty() || afString.trim().isEmpty())
+						|| (seedString.isEmpty() || seedString.trim().isEmpty());
+
+				dialog.getDialogPane().lookupButton(acceptType).setDisable(isDisable);
+			});
+
+			grid.add(hBox, 1, 0);
+
+			dialog.getDialogPane().setContent(grid);
+
+			Optional<ButtonType> result = dialog.showAndWait();
+
+			if (result.get() == acceptType) {
+				ccRButton.setSelected(false);
+				it = Integer.parseInt(i.getText());
+				return n.getText();
 			}
-			System.out.println("total:" + randomNumbers.size());
+			ccRButton.setSelected(false);
+			return null;
 
-			if (chiRadioButton.isSelected()) {
+		} catch (NumberFormatException e) {
 
-				ChiSquare chiSquare = new ChiSquare(randomNumbers);
-				double cv = chiSquare.calculateCV();
-				double valueT = chiSquare.checkTable(Double.parseDouble(alfaTextField.getText()), 0);
-				System.out.println("K: " + chiSquare.getK());
-				if (cv < valueT) {
-					Alert res = new Alert(AlertType.INFORMATION,
-							"La prueba Chi cuadrada acepta la H0 ya que: " + cv + " < " + valueT);
-					res.setTitle("Chi Cuadrada");
-					res.setHeaderText("H0 aceptada!");
-					res.showAndWait();
-				} else {
-					Alert res = new Alert(AlertType.INFORMATION,
-							"La prueba Chi cuadrada rechaza la H0 ya que: " + cv + " >= " + valueT);
-					res.setTitle("Chi Cuadrada");
-					res.setHeaderText("H0 rechazada!");
-					res.showAndWait();
+			Alert error = new Alert(AlertType.ERROR, "Ingresa sólo números");
+			error.setTitle("Error");
+			error.setHeaderText("Datos incorrectos");
+			error.showAndWait();
+			return null;
+		}
+
+	}
+
+	private void generateButtonAction() {
+
+		try {
+
+			Generator generator;
+			ArrayList<Row> randomNumbers;
+			table.getItems().clear();
+
+			if (msRButton.isSelected()) {
+
+				seed = Integer.parseInt(seedTextField.getText());
+				it = Integer.parseInt(iterationsTextField.getText());
+
+				cTextField.setText("");
+				aTextField.setText("");
+				mTextField.setText("");
+
+				generator = new Generator(seed, 0, 0, 0, it);
+				generator.middleSquare();
+				randomNumbers = generator.getList();
+
+				for (Row r : randomNumbers) {
+					table.getItems().add(r);
 				}
-			}
-			if (kRadioButton.isSelected()) {
-				Kolmogorov kolmogorov = new Kolmogorov(randomNumbers);
-				boolean rejected = kolmogorov.valueH0(Double.parseDouble(alfaTextField.getText()));
+				System.out.println("total:" + randomNumbers.size());
 
-				if (rejected == false) {
-					Alert res = new Alert(AlertType.INFORMATION,
-							"La prueba Kolmogorov acepta la H0\n D = " + kolmogorov.getD());
-					res.setTitle("Kolmogorov");
-					res.setHeaderText("H0 aceptada!");
-					res.showAndWait();
-				} else {
-					Alert res = new Alert(AlertType.INFORMATION,
-							"La prueba Kolmogorov rechaza la H0\n D = " + kolmogorov.getD());
-					res.setTitle("Kolmogorov");
-					res.setHeaderText("H0 rechazada!");
-					res.showAndWait();
-				}
-			}
+			} else if (cRButton.isSelected()) {
 
-		} else if (mRButton.isSelected()) {
+				seed = Integer.parseInt(seedTextField.getText());
+				it = Integer.parseInt(iterationsTextField.getText());
+				a = Integer.parseInt(aTextField.getText());
+				c = Integer.parseInt(cTextField.getText());
+				m = Integer.parseInt(mTextField.getText());
 
-			cTextField.setText("");
-			seed = Integer.parseInt(seedTextField.getText());
-			it = Integer.parseInt(iterationsTextField.getText());
-			a = Integer.parseInt(aTextField.getText());
-			m = Integer.parseInt(mTextField.getText());
-
-			generator = new Generator(seed, 0, a, m, it);
-			generator.multiplier();
-			randomNumbers = generator.getList();
-
-			for (Row r : randomNumbers) {
-				table.getItems().add(r);
-			}
-			System.out.println("total:" + randomNumbers.size());
-
-		} else if (cmRButton.isSelected()) {
-			
-			seed = Integer.parseInt(seedTextField.getText());
-			it = Integer.parseInt(iterationsTextField.getText());
-			a = Integer.parseInt(aTextField.getText());
-			c = Integer.parseInt(cTextField.getText());
-			m = Integer.parseInt(mTextField.getText());
-
-			if (checkHullDobell(m, c, a - 1)) {
-
-				System.out.println("si cumple");
 				generator = new Generator(seed, c, a, m, it);
 				generator.congruential();
 				randomNumbers = generator.getList();
@@ -296,24 +373,182 @@ public class Main extends Application {
 					table.getItems().add(r);
 				}
 				System.out.println("total:" + randomNumbers.size());
-			} else {
-				System.out.println("no cumple");
-			}
-		} else if (ccRButton.isSelected()) {
 
-			System.out.println("total");
-			int[] seeds = { 4, 2 };
-			int[] as = { 40014, 40002 };
-			int[] ms = { 2147483563, 2147483399 };
-			it = 5000;
-			generator = new Generator(seeds, as, ms, it);
-			generator.combined();
-			randomNumbers = generator.getList();
-			for (Row r : randomNumbers) {
-				table.getItems().add(r);
+				if (chiRadioButton.isSelected()) {
+
+					ChiSquare chiSquare = new ChiSquare(randomNumbers);
+					double cv = chiSquare.calculateCV();
+					double valueT = chiSquare.checkTable(Double.parseDouble(alfaTextField.getText()), 0);
+					System.out.println("K: " + chiSquare.getK());
+					if (cv < valueT) {
+						Alert res = new Alert(AlertType.INFORMATION,
+								"La prueba Chi cuadrada acepta la H0 ya que: " + cv + " < " + valueT);
+						res.setTitle("Chi Cuadrada");
+						res.setHeaderText("H0 aceptada!");
+						res.showAndWait();
+					} else {
+						Alert res = new Alert(AlertType.INFORMATION,
+								"La prueba Chi cuadrada rechaza la H0 ya que: " + cv + " >= " + valueT);
+						res.setTitle("Chi Cuadrada");
+						res.setHeaderText("H0 rechazada!");
+						res.showAndWait();
+					}
+				}
+				if (kRadioButton.isSelected()) {
+					Kolmogorov kolmogorov = new Kolmogorov(randomNumbers);
+					boolean rejected = kolmogorov.valueH0(Double.parseDouble(alfaTextField.getText()));
+
+					if (rejected == false) {
+						Alert res = new Alert(AlertType.INFORMATION,
+								"La prueba Kolmogorov acepta la H0\n D = " + kolmogorov.getD());
+						res.setTitle("Kolmogorov");
+						res.setHeaderText("H0 aceptada!");
+						res.showAndWait();
+					} else {
+						Alert res = new Alert(AlertType.INFORMATION,
+								"La prueba Kolmogorov rechaza la H0\n D = " + kolmogorov.getD());
+						res.setTitle("Kolmogorov");
+						res.setHeaderText("H0 rechazada!");
+						res.showAndWait();
+					}
+				}
+
+			} else if (mRButton.isSelected()) {
+
+				cTextField.setText("");
+				seed = Integer.parseInt(seedTextField.getText());
+				it = Integer.parseInt(iterationsTextField.getText());
+				a = Integer.parseInt(aTextField.getText());
+				m = Integer.parseInt(mTextField.getText());
+
+				generator = new Generator(seed, 0, a, m, it);
+				generator.multiplier();
+				randomNumbers = generator.getList();
+
+				for (Row r : randomNumbers) {
+					table.getItems().add(r);
+				}
+				System.out.println("total:" + randomNumbers.size());
+
+			} else if (cmRButton.isSelected()) {
+
+				seed = Integer.parseInt(seedTextField.getText());
+				it = Integer.parseInt(iterationsTextField.getText());
+				a = Integer.parseInt(aTextField.getText());
+				c = Integer.parseInt(cTextField.getText());
+				m = Integer.parseInt(mTextField.getText());
+
+				if (checkHullDobell(m, c, a - 1)) {
+
+					System.out.println("si cumple");
+					generator = new Generator(seed, c, a, m, it);
+					generator.congruential();
+					randomNumbers = generator.getList();
+
+					for (Row r : randomNumbers) {
+						table.getItems().add(r);
+					}
+					System.out.println("total:" + randomNumbers.size());
+				} else {
+					System.out.println("no cumple");
+				}
 			}
-			System.out.println("total:" + randomNumbers.size());
+
+		} catch (NumberFormatException e) {
+			
+			Alert error = new Alert(AlertType.ERROR, "Ingresa sólo números y que sean mayores a cero");
+			error.setTitle("Error");
+			error.setHeaderText("Datos incorrectos");
+			error.showAndWait();
 		}
+
+	}
+
+	public int[] createDialog() {
+
+		Dialog<ButtonType> dialog = new Dialog<>();
+		int[] result = new int[3];
+		dialog.setTitle("Generador combinado");
+
+		ButtonType addLButtonType = new ButtonType("Añadir", ButtonData.OK_DONE);
+		dialog.getDialogPane().getButtonTypes().addAll(addLButtonType, ButtonType.CANCEL);
+
+		dialog.getDialogPane().lookupButton(addLButtonType).setDisable(true);
+
+		GridPane grid = new GridPane();
+
+		TextField aField = new TextField();
+		aField.setPromptText("a");
+
+		TextField seedField = new TextField();
+		seedField.setPromptText("semilla");
+
+		TextField mField = new TextField();
+		mField.setPromptText("m");
+
+		aField.setOnKeyReleased(t -> {
+
+			String afString = aField.getText();
+			String seedString = seedField.getText();
+			String mfString = mField.getText();
+			boolean isDisable = (afString.isEmpty() || afString.trim().isEmpty())
+					|| (seedString.isEmpty() || seedString.trim().isEmpty())
+					|| (mfString.isEmpty() || mfString.trim().isEmpty());
+
+			dialog.getDialogPane().lookupButton(addLButtonType).setDisable(isDisable);
+		});
+		seedField.setOnKeyReleased(t -> {
+			String afString = aField.getText();
+			String seedString = seedField.getText();
+			String mfString = mField.getText();
+			boolean isDisable = (afString.isEmpty() || afString.trim().isEmpty())
+					|| (seedString.isEmpty() || seedString.trim().isEmpty())
+					|| (mfString.isEmpty() || mfString.trim().isEmpty());
+			dialog.getDialogPane().lookupButton(addLButtonType).setDisable(isDisable);
+		});
+
+		mField.setOnKeyReleased(t -> {
+			String afString = aField.getText();
+			String seedString = seedField.getText();
+			String mfString = mField.getText();
+			boolean isDisable = (afString.isEmpty() || afString.trim().isEmpty())
+					|| (seedString.isEmpty() || seedString.trim().isEmpty())
+					|| (mfString.isEmpty() || mfString.trim().isEmpty());
+			dialog.getDialogPane().lookupButton(addLButtonType).setDisable(isDisable);
+		});
+
+		HBox hBox = new HBox();
+		hBox.setPadding(new Insets(15, 15, 0, 15));
+		hBox.setSpacing(15);
+		hBox.setAlignment(Pos.CENTER);
+		hBox.getChildren().addAll(seedField, aField, mField);
+
+		grid.add(hBox, 1, 0);
+
+		dialog.getDialogPane().setContent(grid);
+
+		try {
+			if (dialog.showAndWait().get() == addLButtonType) {
+
+				result[0] = Integer.parseInt(seedField.getText());
+				System.out.println("seed " + result[0]);
+				result[1] = Integer.parseInt(aField.getText());
+				System.out.println("a " + result[1]);
+				result[2] = Integer.parseInt(mField.getText());
+				System.out.println("m " + result[2]);
+			} else {
+				return null;
+			}
+
+		} catch (NumberFormatException e) {
+			Alert error = new Alert(AlertType.ERROR, "Ingresa sólo números");
+			error.setTitle("Error");
+			error.setHeaderText("Datos incorrectos");
+			error.showAndWait();
+			return null;
+		}
+
+		return result;
 	}
 
 	public boolean checkHullDobell(int m, int c, int a) {
