@@ -440,7 +440,10 @@ public class Main extends Application {
 
 				if (checkHullDobell(m, c, a - 1)) {
 
-					System.out.println("si cumple");
+					Alert info = new Alert(AlertType.INFORMATION, "Si cumple con Hull-Dobell");
+					info.setTitle("Info");
+					info.setHeaderText("Datos válidos");
+					info.showAndWait();
 					generator = new Generator(seed, c, a, m, it);
 					generator.congruential();
 					randomNumbers = generator.getList();
@@ -450,7 +453,11 @@ public class Main extends Application {
 					}
 					System.out.println("total:" + randomNumbers.size());
 				} else {
-					System.out.println("no cumple");
+					
+					Alert info = new Alert(AlertType.INFORMATION, "No cumple con Hull-Dobell");
+					info.setTitle("Info");
+					info.setHeaderText("Datos no válidos");
+					info.showAndWait();
 				}
 			}
 

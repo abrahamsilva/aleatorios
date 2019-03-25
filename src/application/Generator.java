@@ -171,10 +171,10 @@ public class Generator {
 				control.add((int) xb);
 			}
 			for (int j = 0; j < seeds.length; j++) {
-				System.out.println("Entra seeds= " + seeds[j]);
+				
 				xi[j] = mixed(seeds[j], as[j], ms[j]);
 				seeds[j] = xi[j];
-				System.out.println("Sale seeds= " + seeds[j]);
+				
 				if(j==0) {
 					sum += xi[j];
 				}
@@ -182,8 +182,7 @@ public class Generator {
 					sum-=xi[j];
 				}		
 			}
-			
-			System.out.println("sum= "+sum);
+		
 			xij = sum % m;
 			if(xij<0) {
 				xij+=m;
@@ -218,7 +217,6 @@ public class Generator {
 
 	public int mixed(int seed, int a, int m) {
 		
-		System.out.println("seed = " + seed + " a = " +a + "m =" + m);
 		return (a * seed) % m;
 	}
 
